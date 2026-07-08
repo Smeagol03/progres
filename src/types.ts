@@ -4,6 +4,7 @@ export type StatusPembayaran = 'belum_bayar' | 'sebagian' | 'lunas';
 export interface PaketPekerjaan {
   id: string;
   kode_paket?: string | null;
+  sumber_dana?: string | null;
   nama_paket: string;
   lokasi?: string | null;
   kontraktor?: string | null;

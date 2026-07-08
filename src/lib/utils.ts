@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { StatusPembayaran } from '../types';
+import type { StatusPembayaran } from '../types';
 
 /**
  * Utility to merge Tailwind classes safely
