@@ -97,8 +97,8 @@ export default function Dashboard() {
         );
 
         const capaian_keuangan_persen =
-          total_pagu_anggaran > 0
-            ? (total_nilai_terbayar / total_pagu_anggaran) * 100
+          total_nilai_kontrak > 0
+            ? (total_nilai_terbayar / total_nilai_kontrak) * 100
             : 0;
 
         setData({
@@ -188,7 +188,7 @@ export default function Dashboard() {
             />
           </div>
 
-          <div className="flex-1 w-full max-w-lg space-y-4 md:space-y-6 min-w-0">
+          <div className="flex-1 w-full max-w-lg min-w-0">
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <div className="bg-navy/5 rounded-xl p-3 md:p-4 min-w-0">
                 <p className="text-[10px] md:text-xs text-gray-500 mb-1">Total Pagu</p>
@@ -196,18 +196,32 @@ export default function Dashboard() {
                   {formatRupiah(data.total_pagu_anggaran)}
                 </p>
               </div>
+              <div className="bg-emerald-50 rounded-xl p-3 md:p-4 min-w-0">
+                <p className="text-[10px] md:text-xs text-gray-500 mb-1">Sisa Pagu</p>
+                <p className="font-mono font-bold text-emerald-600 text-sm md:text-lg truncate">
+                  {formatRupiah(data.total_pagu_anggaran - data.total_nilai_kontrak)}
+                </p>
+              </div>
               <div className="bg-navy/5 rounded-xl p-3 md:p-4 min-w-0">
-                <p className="text-[10px] md:text-xs text-gray-500 mb-1">Terkontrak</p>
+                <p className="text-[10px] md:text-xs text-gray-500 mb-1">Nilai Kontrak</p>
                 <p className="font-mono font-bold text-navy text-sm md:text-lg truncate">
                   {formatRupiah(data.total_nilai_kontrak)}
                 </p>
               </div>
-              <div className="bg-gold/10 rounded-xl p-3 md:p-4 col-span-2 min-w-0">
-                <p className="text-[10px] md:text-xs text-gray-500 mb-1">Total Dana Terbayar</p>
-                <p className="font-mono font-bold text-gold text-base md:text-xl truncate">
+              <div className="bg-navy/5 rounded-xl p-3 md:p-4 min-w-0">
+                <p className="text-[10px] md:text-xs text-gray-500 mb-1">Sudah Terbayar</p>
+                <p className="font-mono font-bold text-navy text-sm md:text-lg truncate">
                   {formatRupiah(data.total_nilai_terbayar)}
                 </p>
-                <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+              </div>
+              <div className="bg-gold/10 rounded-xl p-3 md:p-4 col-span-2 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-[10px] md:text-xs text-gray-500">Capaian Pembayaran</p>
+                  <p className="font-mono font-bold text-gold text-sm md:text-base">
+                    {Math.round(data.capaian_keuangan_persen)}%
+                  </p>
+                </div>
+                <div className="h-3 md:h-4 bg-gray-100 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gold rounded-full transition-all duration-1000"
                     style={{ width: `${Math.min(data.capaian_keuangan_persen, 100)}%` }}
@@ -246,8 +260,8 @@ export default function Dashboard() {
           value={formatRupiah(data.total_nilai_terbayar)}
           icon={<ArrowUpRight className="w-5 h-5" />}
           description={
-            data.total_pagu_anggaran > 0
-              ? `${Math.round(data.capaian_keuangan_persen)}% dari pagu`
+            data.total_nilai_kontrak > 0
+              ? `${Math.round(data.capaian_keuangan_persen)}% dari kontrak`
               : undefined
           }
         />
