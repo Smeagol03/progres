@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
+import { useReadOnly } from "../contexts/ReadOnlyContext";
 import type { PaketPekerjaan, CapaianProgram } from "../types";
 import { formatRupiah } from "../lib/utils";
 import { ProgressRadial } from "../components/ProgressRadial";
@@ -18,6 +19,7 @@ function useWindowWidth() {
 }
 
 export default function Dashboard() {
+  const { isReadOnly, token } = useReadOnly();
   const [data, setData] = useState<CapaianProgram>({
     total_paket: 0,
     paket_lunas: 0,
@@ -33,9 +35,18 @@ export default function Dashboard() {
 
   useEffect(() => {
     async function fetchDashboardData() {
-      const { data: paketList, error } = await supabase
-        .from("paket_pekerjaan")
-        .select("*");
+      let paketList: PaketPekerjaan[] | null = null;
+      let error: any = null;
+
+      if (isReadOnly) {
+        const result = await supabase.rpc("get_paket_pekerjaan_readonly", { token_text: token });
+        paketList = result.data as PaketPekerjaan[] | null;
+        error = result.error;
+      } else {
+        const result = await supabase.from("paket_pekerjaan").select("*");
+        paketList = result.data;
+        error = result.error;
+      }
 
       if (!error && paketList) {
         const total_paket = paketList.length;
@@ -113,7 +124,7 @@ export default function Dashboard() {
             Ringkasan progres pembayaran program RTLH
           </p>
         </div>
-        {data.total_paket === 0 && (
+        {data.total_paket === 0 && !isReadOnly && (
           <Link
             to="/paket"
             className="bg-navy hover:bg-navy-light text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm hover:shadow-md shrink-0"

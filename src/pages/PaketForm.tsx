@@ -1,14 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, Navigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { useReadOnly } from '../contexts/ReadOnlyContext';
 import type { PaketPekerjaan } from '../types';
 import { ArrowLeft, Save, Loader2 } from 'lucide-react';
 import { cn, hitungStatusPembayaran } from '../lib/utils';
 
 export default function PaketForm() {
+  const { isReadOnly } = useReadOnly();
   const { id } = useParams<{ id: string }>();
   const isEditing = Boolean(id);
   const navigate = useNavigate();
+
+  if (isReadOnly) {
+    return <Navigate to="/paket" replace />;
+  }
 
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(isEditing);

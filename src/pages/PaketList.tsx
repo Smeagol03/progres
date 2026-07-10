@@ -1,34 +1,48 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "../lib/supabase";
+import { useReadOnly } from "../contexts/ReadOnlyContext";
 import type { PaketPekerjaan } from "../types";
 import { formatRupiah, hitungStatusPembayaran, cn } from "../lib/utils";
 import { StatusBadge } from "../components/StatusBadge";
 import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
 
 export default function PaketList() {
+  const { isReadOnly, token } = useReadOnly();
   const [paketList, setPaketList] = useState<PaketPekerjaan[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sumberDanaFilter, setSumberDanaFilter] = useState<string>("all");
 
-  const fetchPaket = async () => {
+  const fetchPaket = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("paket_pekerjaan")
-      .select("*")
-      .order("created_at", { ascending: false });
+
+    let data: PaketPekerjaan[] | null = null;
+    let error: any = null;
+
+    if (isReadOnly) {
+      const result = await supabase.rpc("get_paket_pekerjaan_readonly", { token_text: token });
+      data = result.data as PaketPekerjaan[] | null;
+      error = result.error;
+    } else {
+      const result = await supabase
+        .from("paket_pekerjaan")
+        .select("*")
+        .order("created_at", { ascending: false });
+      data = result.data;
+      error = result.error;
+    }
 
     if (data && !error) {
       setPaketList(data);
     }
     setLoading(false);
-  };
+  }, [isReadOnly, token]);
 
   useEffect(() => {
     fetchPaket();
-  }, []);
+  }, [fetchPaket]);
 
   const handleDelete = async (id: string, nama: string) => {
     if (
@@ -81,13 +95,15 @@ export default function PaketList() {
             Kelola semua paket pekerjaan RTLH yang sedang berjalan
           </p>
         </div>
-        <Link
-          to="/paket/baru"
-          className="bg-navy hover:bg-navy-light text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center shrink-0"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Tambah Paket
-        </Link>
+        {!isReadOnly && (
+          <Link
+            to="/paket/baru"
+            className="bg-navy hover:bg-navy-light text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center shrink-0"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Tambah Paket
+          </Link>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
@@ -179,12 +195,14 @@ export default function PaketList() {
                     >
                       Progres Pembayaran
                     </th>
-                    <th
-                      scope="col"
-                      className="px-6 py-4 font-semibold text-center"
-                    >
-                      Aksi
-                    </th>
+                    {!isReadOnly && (
+                      <th
+                        scope="col"
+                        className="px-6 py-4 font-semibold text-center"
+                      >
+                        Aksi
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -263,26 +281,28 @@ export default function PaketList() {
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center justify-center space-x-2">
-                            <Link
-                              to={`/paket/${paket.id}`}
-                              className="p-2 text-gray-400 hover:text-navy hover:bg-navy/5 rounded-lg transition-colors"
-                              title="Ubah"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                            </Link>
-                            <button
-                              onClick={() =>
-                                handleDelete(paket.id, paket.nama_paket)
-                              }
-                              className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                              title="Hapus"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+                        {!isReadOnly && (
+                          <td className="px-6 py-4">
+                            <div className="flex items-center justify-center space-x-2">
+                              <Link
+                                to={`/paket/${paket.id}`}
+                                className="p-2 text-gray-400 hover:text-navy hover:bg-navy/5 rounded-lg transition-colors"
+                                title="Ubah"
+                              >
+                                <Edit2 className="w-4 h-4" />
+                              </Link>
+                              <button
+                                onClick={() =>
+                                  handleDelete(paket.id, paket.nama_paket)
+                                }
+                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                title="Hapus"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     );
                   })}
@@ -366,22 +386,24 @@ export default function PaketList() {
                       </span>
                     </div>
 
-                    <div className="flex items-center justify-end gap-3">
-                      <Link
-                        to={`/paket/${paket.id}`}
-                        className="inline-flex items-center text-xs font-medium text-navy hover:text-gold transition-colors"
-                      >
-                        <Edit2 className="w-3.5 h-3.5 mr-1" />
-                        Ubah
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(paket.id, paket.nama_paket)}
-                        className="inline-flex items-center text-xs font-medium text-red-500 hover:text-red-700 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 mr-1" />
-                        Hapus
-                      </button>
-                    </div>
+                    {!isReadOnly && (
+                      <div className="flex items-center justify-end gap-3">
+                        <Link
+                          to={`/paket/${paket.id}`}
+                          className="inline-flex items-center text-xs font-medium text-navy hover:text-gold transition-colors"
+                        >
+                          <Edit2 className="w-3.5 h-3.5 mr-1" />
+                          Ubah
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(paket.id, paket.nama_paket)}
+                          className="inline-flex items-center text-xs font-medium text-red-500 hover:text-red-700 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 mr-1" />
+                          Hapus
+                        </button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
