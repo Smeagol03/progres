@@ -1,10 +1,17 @@
-import { useState } from 'react';
-import { Navigate, Outlet, Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import { useReadOnly } from '../contexts/ReadOnlyContext';
-import { LayoutDashboard, FileSpreadsheet, LogOut, Home, Menu, Eye } from 'lucide-react';
-import { cn } from '../lib/utils';
-import ShareSettings from './ShareSettings';
+import { useState } from "react";
+import { Navigate, Outlet, Link, useLocation } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
+import { useReadOnly } from "../contexts/ReadOnlyContext";
+import {
+  LayoutDashboard,
+  FileSpreadsheet,
+  LogOut,
+  Home,
+  Menu,
+  Eye,
+} from "lucide-react";
+import { cn } from "../lib/utils";
+import ShareSettings from "./ShareSettings";
 
 export default function Layout() {
   const { isReadOnly, ready: readOnlyReady } = useReadOnly();
@@ -30,15 +37,17 @@ export default function Layout() {
   }
 
   const navigation = [
-    { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-    { name: 'Daftar Paket', href: '/paket', icon: FileSpreadsheet },
+    { name: "Dashboard", href: "/", icon: LayoutDashboard },
+    { name: "Daftar Paket", href: "/paket", icon: FileSpreadsheet },
   ];
 
   const sidebarContent = (
     <>
       <div className="h-16 flex items-center px-6 border-b border-navy-light">
         <Home className="w-6 h-6 text-gold mr-3 shrink-0" />
-        <span className="font-display font-bold text-lg text-white">RTLH Monitor</span>
+        <span className="font-display font-bold text-lg text-white">
+          RTLH Monitor
+        </span>
       </div>
 
       {isReadOnly && (
@@ -50,8 +59,9 @@ export default function Layout() {
 
       <div className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
         {navigation.map((item) => {
-          const isActive = location.pathname === item.href ||
-                           (item.href !== '/' && location.pathname.startsWith(item.href));
+          const isActive =
+            location.pathname === item.href ||
+            (item.href !== "/" && location.pathname.startsWith(item.href));
           return (
             <Link
               key={item.name}
@@ -61,13 +71,17 @@ export default function Layout() {
                 "flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors group",
                 isActive
                   ? "bg-navy-light text-gold"
-                  : "text-gray-300 hover:bg-navy-light/50 hover:text-white"
+                  : "text-gray-300 hover:bg-navy-light/50 hover:text-white",
               )}
             >
-              <item.icon className={cn(
-                "mr-3 flex-shrink-0 h-5 w-5",
-                isActive ? "text-gold" : "text-gray-400 group-hover:text-gray-300"
-              )} />
+              <item.icon
+                className={cn(
+                  "mr-3 shrink-0 h-5 w-5",
+                  isActive
+                    ? "text-gold"
+                    : "text-gray-400 group-hover:text-gray-300",
+                )}
+              />
               {item.name}
             </Link>
           );
@@ -83,7 +97,9 @@ export default function Layout() {
               AD
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate text-white">Administrator</p>
+              <p className="text-sm font-medium truncate text-white">
+                Administrator
+              </p>
               <p className="text-xs truncate text-gray-400">{user.email}</p>
             </div>
           </div>
@@ -109,10 +125,12 @@ export default function Layout() {
       )}
 
       {/* Desktop Sidebar */}
-      <div className={cn(
-        "hidden lg:flex lg:flex-col w-64 bg-navy text-white fixed inset-y-0 left-0 z-30",
-        isReadOnly && "top-7"
-      )}>
+      <div
+        className={cn(
+          "hidden lg:flex lg:flex-col w-64 bg-navy text-white fixed inset-y-0 left-0 z-30",
+          isReadOnly && "top-7",
+        )}
+      >
         {sidebarContent}
       </div>
 
@@ -123,20 +141,24 @@ export default function Layout() {
             className="fixed inset-0 bg-black/50 transition-opacity"
             onClick={() => setSidebarOpen(false)}
           />
-          <div className={cn(
-            "fixed inset-y-0 left-0 w-64 bg-navy text-white z-50 animate-in slide-in-from-left duration-300",
-            isReadOnly && "top-7"
-          )}>
+          <div
+            className={cn(
+              "fixed inset-y-0 left-0 w-64 bg-navy text-white z-50 animate-in slide-in-from-left duration-300",
+              isReadOnly && "top-7",
+            )}
+          >
             {sidebarContent}
           </div>
         </div>
       )}
 
       {/* Top bar for mobile */}
-      <div className={cn(
-        "fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:hidden z-20 shadow-sm transition-all",
-        isReadOnly && "top-7"
-      )}>
+      <div
+        className={cn(
+          "fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 flex items-center px-4 lg:hidden z-20 shadow-sm transition-all",
+          isReadOnly && "top-7",
+        )}
+      >
         <button
           onClick={() => setSidebarOpen(true)}
           className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-navy mr-3"
@@ -149,10 +171,12 @@ export default function Layout() {
       </div>
 
       {/* Main Content */}
-      <div className={cn(
-        "flex-1 lg:pl-64 pt-16 lg:pt-0",
-        isReadOnly && "pt-20 lg:pt-7"
-      )}>
+      <div
+        className={cn(
+          "flex-1 lg:pl-64 pt-16 lg:pt-0",
+          isReadOnly && "pt-20 lg:pt-7",
+        )}
+      >
         <main className="p-4 md:p-6 lg:p-8 max-w-7xl mx-auto">
           <Outlet />
         </main>

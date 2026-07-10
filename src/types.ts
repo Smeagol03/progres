@@ -20,6 +20,9 @@ export interface PaketPekerjaan {
 export interface CapaianProgram {
   total_paket: number;
   paket_lunas: number;
+  paket_sebagian: number;
+  paket_belum_bayar: number;
+  paket_belum_kontrak: number;
   total_pagu_anggaran: number;
   total_nilai_kontrak: number;
   total_nilai_terbayar: number;
