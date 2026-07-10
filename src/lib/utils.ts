@@ -28,7 +28,8 @@ export function hitungStatusPembayaran(
   nilai_kontrak: number,
   nilai_terbayar: number
 ): StatusPembayaran {
+  if (!nilai_kontrak || nilai_kontrak <= 0) return 'belum_kontrak';
   if (nilai_terbayar <= 0) return 'belum_bayar';
-  if (nilai_kontrak > 0 && nilai_terbayar >= nilai_kontrak) return 'lunas';
+  if (nilai_terbayar >= nilai_kontrak) return 'lunas';
   return 'sebagian';
 }

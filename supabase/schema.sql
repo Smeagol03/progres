@@ -6,10 +6,9 @@ CREATE TABLE paket_pekerjaan (
     sumber_dana TEXT, -- e.g. Reguler, Aspirasi, dll
     lokasi TEXT,
     kontraktor TEXT,
-    nilai_kontrak NUMERIC(16,2) NOT NULL,
+    pagu_anggaran NUMERIC(16,2) NOT NULL DEFAULT 0,
+    nilai_kontrak NUMERIC(16,2) NOT NULL DEFAULT 0,
     nilai_terbayar NUMERIC(16,2) NOT NULL DEFAULT 0,
-    status_fisik TEXT NOT NULL CHECK (status_fisik IN ('belum_mulai', 'proses', 'selesai')),
-    progres_fisik NUMERIC(5,2) DEFAULT 0 CHECK (progres_fisik >= 0 AND progres_fisik <= 100),
     tanggal_mulai DATE,
     tanggal_selesai DATE,
     catatan TEXT,

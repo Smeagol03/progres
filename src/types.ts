@@ -1,5 +1,4 @@
-export type StatusFisik = 'belum_mulai' | 'proses' | 'selesai';
-export type StatusPembayaran = 'belum_bayar' | 'sebagian' | 'lunas';
+export type StatusPembayaran = 'belum_kontrak' | 'belum_bayar' | 'sebagian' | 'lunas';
 
 export interface PaketPekerjaan {
   id: string;
@@ -8,10 +7,9 @@ export interface PaketPekerjaan {
   nama_paket: string;
   lokasi?: string | null;
   kontraktor?: string | null;
+  pagu_anggaran: number;
   nilai_kontrak: number;
   nilai_terbayar: number;
-  status_fisik: StatusFisik;
-  progres_fisik?: number | null;
   tanggal_mulai?: string | null;
   tanggal_selesai?: string | null;
   catatan?: string | null;
@@ -21,10 +19,9 @@ export interface PaketPekerjaan {
 
 export interface CapaianProgram {
   total_paket: number;
-  paket_selesai: number;
   paket_lunas: number;
+  total_pagu_anggaran: number;
   total_nilai_kontrak: number;
   total_nilai_terbayar: number;
-  capaian_fisik_persen: number;
   capaian_keuangan_persen: number;
 }

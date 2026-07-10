@@ -32,7 +32,7 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-navy flex items-center justify-center p-4">
       <div className="w-full max-w-md bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div className="p-8">
+        <div className="p-6 md:p-8">
           <div className="flex flex-col items-center justify-center mb-8">
             <div className="w-16 h-16 bg-navy/5 rounded-2xl flex items-center justify-center mb-4">
               <Building2 className="w-8 h-8 text-navy" />
