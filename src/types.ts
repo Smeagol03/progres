@@ -17,6 +17,18 @@ export interface PaketPekerjaan {
   updated_at: string;
 }
 
+export interface SumberDanaInfo {
+  total_paket: number;
+  total_pagu: number;
+  total_kontrak: number;
+  total_terbayar: number;
+  capaian_persen: number;
+  paket_lunas: number;
+  paket_sebagian: number;
+  paket_belum_bayar: number;
+  paket_belum_kontrak: number;
+}
+
 export interface CapaianProgram {
   total_paket: number;
   paket_lunas: number;
@@ -27,4 +39,6 @@ export interface CapaianProgram {
   total_nilai_kontrak: number;
   total_nilai_terbayar: number;
   capaian_keuangan_persen: number;
+  reguler: SumberDanaInfo;
+  aspirasi: SumberDanaInfo;
 }
