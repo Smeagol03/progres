@@ -5,12 +5,14 @@ import { useReadOnly } from "../contexts/ReadOnlyContext";
 import type { PaketPekerjaan } from "../types";
 import { formatRupiah, hitungStatusPembayaran, cn } from "../lib/utils";
 import { StatusBadge } from "../components/StatusBadge";
-import { Plus, Edit2, Trash2, Search, Loader2 } from "lucide-react";
+import { Plus, Edit2, Trash2, Search, Loader2, FileDown } from "lucide-react";
+import { exportPaketListExcel } from "../utils/exportExcel";
 
 export default function PaketList() {
   const { isReadOnly, token } = useReadOnly();
   const [paketList, setPaketList] = useState<PaketPekerjaan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sumberDanaFilter, setSumberDanaFilter] = useState<string>("all");
@@ -59,6 +61,18 @@ export default function PaketList() {
       } else {
         alert("Gagal menghapus data.");
       }
+    }
+  };
+
+  const handleExportExcel = async () => {
+    setIsExporting(true);
+    try {
+      await exportPaketListExcel(filteredPaket, {
+        status: statusFilter,
+        sumberDana: sumberDanaFilter,
+      });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -147,6 +161,24 @@ export default function PaketList() {
                 </option>
               ))}
             </select>
+
+            <button
+              id="btn-ekspor-excel"
+              onClick={handleExportExcel}
+              disabled={isExporting || filteredPaket.length === 0}
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border transition-all
+                bg-emerald-50 text-emerald-700 border-emerald-200
+                hover:bg-emerald-100 hover:border-emerald-300
+                disabled:opacity-50 disabled:cursor-not-allowed"
+              title={`Ekspor ${filteredPaket.length} data ke Excel`}
+            >
+              {isExporting
+                ? <Loader2 className="w-4 h-4 animate-spin" />
+                : <FileDown className="w-4 h-4" />}
+              <span className="hidden sm:inline">
+                {isExporting ? "Mengekspor..." : "Ekspor Excel"}
+              </span>
+            </button>
           </div>
         </div>
 

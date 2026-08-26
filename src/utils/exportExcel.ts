@@ -180,3 +180,175 @@ export async function exportDashboardExcel(
   a.click()
   window.URL.revokeObjectURL(url)
 }
+
+/**
+ * Ekspor daftar paket (hasil filter) ke file Excel (.xlsx)
+ * @param paketList  - array paket yang sudah difilter dari tampilan
+ * @param filterInfo - info filter aktif untuk nama file & judul sheet
+ */
+export async function exportPaketListExcel(
+  paketList: PaketPekerjaan[],
+  filterInfo?: { status?: string; sumberDana?: string }
+) {
+  const wb = new ExcelJS.Workbook()
+  wb.creator = 'Progres RTLH'
+  wb.created = new Date()
+
+  // ─── Color constants ───
+  const GOLD   = 'FFD4AF37'
+  const NAVY   = 'FF1E3A5F'
+  const WHITE  = 'FFFFFFFF'
+  const LIGHT  = 'FFF9FAFB'
+
+  const statusColors: Record<string, string> = {
+    'Belum Kontrak': 'FF9CA3AF',
+    'Belum Bayar':   'FFEF4444',
+    'Proses Bayar':  'FFFB923C',
+    'Lunas':         'FFD4AF37',
+  }
+
+  // ── Judul sheet berdasarkan filter ──
+  const sheetTitle = (() => {
+    const parts: string[] = []
+    if (filterInfo?.status && filterInfo.status !== 'all') parts.push(filterInfo.status)
+    if (filterInfo?.sumberDana && filterInfo.sumberDana !== 'all') parts.push(filterInfo.sumberDana)
+    return parts.length ? `Paket - ${parts.join(', ')}` : 'Daftar Paket'
+  })()
+
+  const ws = wb.addWorksheet(sheetTitle, {
+    views: [{ state: 'frozen', ySplit: 2 }],
+    pageSetup: { paperSize: 9, orientation: 'landscape', fitToPage: true, fitToWidth: 1 },
+  })
+
+  // ── Baris 1: judul dokumen ──
+  ws.mergeCells('A1:J1')
+  const titleCell = ws.getCell('A1')
+  titleCell.value = `Daftar Paket Pekerjaan RTLH — ${new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}`
+  titleCell.font   = { bold: true, size: 12, color: { argb: WHITE } }
+  titleCell.fill   = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+  titleCell.alignment = { horizontal: 'center', vertical: 'middle' }
+  ws.getRow(1).height = 24
+
+  // ── Baris 2: header kolom ──
+  ws.columns = [
+    { key: 'no',         width: 5  },
+    { key: 'kode',       width: 16 },
+    { key: 'nama_paket', width: 44 },
+    { key: 'sumber_dana',width: 13 },
+    { key: 'lokasi',     width: 24 },
+    { key: 'kontraktor', width: 28 },
+    { key: 'pagu',       width: 19 },
+    { key: 'kontrak',    width: 19 },
+    { key: 'terbayar',   width: 19 },
+    { key: 'status',     width: 15 },
+  ]
+
+  const headers = ['No', 'Kode Paket', 'Nama Paket', 'Sumber Dana', 'Lokasi', 'Kontraktor',
+                   'Pagu Anggaran', 'Nilai Kontrak', 'Nilai Terbayar', 'Status']
+  const hRow = ws.getRow(2)
+  headers.forEach((h, i) => {
+    const cell = hRow.getCell(i + 1)
+    cell.value = h
+    cell.font      = { bold: true, color: { argb: WHITE }, size: 10 }
+    cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: GOLD } }
+    cell.alignment = { horizontal: 'center', vertical: 'middle', wrapText: true }
+    cell.border    = { bottom: { style: 'thin', color: { argb: NAVY } } }
+  })
+  hRow.height = 20
+
+  // ── Baris data ──
+  paketList.forEach((p, i) => {
+    const status = getStatusLabel(p)
+    const row    = ws.getRow(i + 3)
+
+    row.values = [
+      i + 1,
+      p.kode_paket  || '-',
+      p.nama_paket,
+      p.sumber_dana || '-',
+      p.lokasi      || '-',
+      p.kontraktor  || '-',
+      p.pagu_anggaran  || 0,
+      p.nilai_kontrak  || 0,
+      p.nilai_terbayar || 0,
+      status,
+    ]
+
+    row.eachCell((cell, colNum) => {
+      cell.font   = { size: 9 }
+      cell.border = {
+        top:    { style: 'thin', color: { argb: 'FFE5E7EB' } },
+        bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } },
+      }
+
+      // Angka → format ribuan + rata kanan
+      if (colNum >= 7 && colNum <= 9) {
+        cell.numFmt    = '#,##0'
+        cell.alignment = { horizontal: 'right' }
+      }
+      if (colNum === 1)  cell.alignment = { horizontal: 'center' }
+      if (colNum === 10) {
+        cell.alignment = { horizontal: 'center' }
+        cell.font      = { size: 9, bold: true, color: { argb: statusColors[status] || 'FF000000' } }
+      }
+    })
+
+    // Selang-seling warna baris
+    if (i % 2 === 1) {
+      row.eachCell(cell => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: LIGHT } }
+      })
+    }
+  })
+
+  // ── Baris ringkasan total ──
+  const totalRow = ws.getRow(paketList.length + 3)
+  const totalPagu     = paketList.reduce((s, p) => s + (Number(p.pagu_anggaran)  || 0), 0)
+  const totalKontrak  = paketList.reduce((s, p) => s + (Number(p.nilai_kontrak)  || 0), 0)
+  const totalTerbayar = paketList.reduce((s, p) => s + (Number(p.nilai_terbayar) || 0), 0)
+
+  ws.mergeCells(`A${paketList.length + 3}:F${paketList.length + 3}`)
+  const labelCell = totalRow.getCell(1)
+  labelCell.value     = `TOTAL  (${paketList.length} paket)`
+  labelCell.font      = { bold: true, size: 10, color: { argb: WHITE } }
+  labelCell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+  labelCell.alignment = { horizontal: 'right', vertical: 'middle' }
+
+  ;[
+    { col: 7, val: totalPagu },
+    { col: 8, val: totalKontrak },
+    { col: 9, val: totalTerbayar },
+  ].forEach(({ col, val }) => {
+    const cell = totalRow.getCell(col)
+    cell.value     = val
+    cell.numFmt    = '#,##0'
+    cell.font      = { bold: true, size: 10, color: { argb: WHITE } }
+    cell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+    cell.alignment = { horizontal: 'right', vertical: 'middle' }
+  })
+
+  // Capaian % di kolom 10
+  const capaianCell = totalRow.getCell(10)
+  const capaianPct  = totalKontrak > 0 ? Math.round((totalTerbayar / totalKontrak) * 100) : 0
+  capaianCell.value     = `${capaianPct}%`
+  capaianCell.font      = { bold: true, size: 10, color: { argb: GOLD } }
+  capaianCell.fill      = { type: 'pattern', pattern: 'solid', fgColor: { argb: NAVY } }
+  capaianCell.alignment = { horizontal: 'center', vertical: 'middle' }
+  totalRow.height = 22
+
+  // ── Download ──
+  const tanggal  = new Date().toISOString().slice(0, 10)
+  const suffix   = sheetTitle.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
+  const filename = `paket-rtlh-${suffix}-${tanggal}.xlsx`
+
+  const buffer = await wb.xlsx.writeBuffer()
+  const blob   = new Blob([buffer], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  })
+  const url = window.URL.createObjectURL(blob)
+  const a   = document.createElement('a')
+  a.href     = url
+  a.download = filename
+  a.click()
+  window.URL.revokeObjectURL(url)
+}
